@@ -5,7 +5,7 @@ FastAPI + RabbitMQ + PostgreSQL + Selenium, containerizado com Docker Compose.
 ## Execução
 
 ```bash
-git clone <URL_DO_REPO> && cd teste-tecnico-senior-rpa
+git clone <https://github.com/rafakortez/teste-rpa> && cd teste-tecnico-senior-rpa
 docker-compose up -d --build
 ```
 
