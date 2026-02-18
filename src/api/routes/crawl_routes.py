@@ -40,3 +40,21 @@ async def crawl_oscar(
 
     await session.commit()
     return CrawlJobResponse.model_validate(job)
+
+
+@router.post("/all", response_model=list[CrawlJobResponse])
+async def crawl_all(
+    session: AsyncSession = Depends(get_session),
+    channel: aio_pika.abc.AbstractChannel = Depends(get_channel),
+):
+    repo = CrawlJobRepo(session)
+    jobs = []
+
+    for job_type in [JobType.HOCKEY, JobType.OSCAR]:
+        job = CrawlJob(job_type=job_type)
+        await repo.create(job)
+        await publish_crawl_job(channel, job.id, job.job_type.value)
+        jobs.append(job)
+
+    await session.commit()
+    return [CrawlJobResponse.model_validate(j) for j in jobs]

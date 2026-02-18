@@ -11,6 +11,22 @@ from src.schemas.oscar_film_response import OscarFilmResponse  # formato oscar
 router = APIRouter(prefix="/results", tags=["results"])
 
 
+@router.get("/hockey", response_model=list[HockeyTeamResponse])
+async def get_all_hockey(session: AsyncSession = Depends(get_session)):
+    """Retorna todos os dados coletados de hockey (todos os jobs)."""
+    repo = HockeyTeamRepo(session)
+    teams = await repo.get_all()
+    return [HockeyTeamResponse.model_validate(t) for t in teams]
+
+
+@router.get("/oscar", response_model=list[OscarFilmResponse])
+async def get_all_oscar(session: AsyncSession = Depends(get_session)):
+    """Retorna todos os dados coletados de oscar (todos os jobs)."""
+    repo = OscarFilmRepo(session)
+    films = await repo.get_all()
+    return [OscarFilmResponse.model_validate(f) for f in films]
+
+
 @router.get("/hockey/{job_id}", response_model=list[HockeyTeamResponse])
 async def get_hockey_results(
     job_id: str,
