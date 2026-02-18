@@ -1,3 +1,5 @@
+import uuid
+
 from sqlalchemy import Float, ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -7,7 +9,9 @@ from src.models.base_entity import BaseEntity
 class HockeyTeam(BaseEntity):
     __tablename__ = "hockey_teams"
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    id: Mapped[str] = mapped_column(
+        String(36), primary_key=True, default=lambda: str(uuid.uuid4())
+    )
     job_id: Mapped[str] = mapped_column(
         String(36), ForeignKey("crawl_jobs.id"), nullable=False
     )

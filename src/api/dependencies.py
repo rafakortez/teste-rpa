@@ -1,8 +1,13 @@
+import asyncio
+import logging
+
 import aio_pika
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.database import async_session_factory
 from src.queue.rabbit_connection import get_rabbit_channel, get_rabbit_connection
+
+logger = logging.getLogger(__name__)
 
 
 async def get_session() -> AsyncSession:
@@ -16,9 +21,16 @@ _rabbit_connection: aio_pika.abc.AbstractRobustConnection | None = None
 
 
 async def startup_rabbit():
-    """Chamada uma vez quando a API inicia."""
+    """Conecta no RabbitMQ com retry p/ lidar com startup lento do container."""
     global _rabbit_connection
-    _rabbit_connection = await get_rabbit_connection()
+    for attempt in range(10):
+        try:
+            _rabbit_connection = await get_rabbit_connection()
+            logger.info("RabbitMQ conectado na tentativa %d", attempt + 1)
+            return
+        except Exception:
+            logger.warning("RabbitMQ indisponivel, tentativa %d/10...", attempt + 1)
+            await asyncio.sleep(3)
 
 
 async def shutdown_rabbit():

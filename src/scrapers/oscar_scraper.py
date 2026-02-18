@@ -57,13 +57,19 @@ class OscarScraper(BaseScraper):
         WebDriverWait(driver, LOAD_TIMEOUT).until(
             ec.presence_of_element_located((By.CSS_SELECTOR, ".film-title"))
         )
+        # pequeno sleep p/ garantir que a tabela estabilizou apos AJAX
+        import time
+        time.sleep(3)
 
         films = []
         rows = driver.find_elements(By.CSS_SELECTOR, "tr.film")
         for row in rows:
             title = row.find_element(By.CSS_SELECTOR, ".film-title").text.strip()
-            nominations = int(row.find_element(By.CSS_SELECTOR, ".film-nominations").text.strip())
-            awards = int(row.find_element(By.CSS_SELECTOR, ".film-awards").text.strip())
+            nominations_text = row.find_element(By.CSS_SELECTOR, ".film-nominations").text.strip()
+            nominations = int(nominations_text) if nominations_text else 0
+
+            awards_text = row.find_element(By.CSS_SELECTOR, ".film-awards").text.strip()
+            awards = int(awards_text) if awards_text else 0
             best = self._is_best_picture(row)
             films.append({
                 "title": title,

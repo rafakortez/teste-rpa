@@ -27,10 +27,24 @@ async def on_message(message: aio_pika.abc.AbstractIncomingMessage) -> None:
 
 async def main() -> None:
     """Loop principal do worker. Roda ate ser interrompido."""
-    connection = await get_rabbit_connection()
+    # retry p/ esperar RabbitMQ estar pronto
+    connection = None
+    for attempt in range(10):
+        try:
+            connection = await get_rabbit_connection()
+            logger.info("RabbitMQ conectado na tentativa %d", attempt + 1)
+            break
+        except Exception:
+            logger.warning("RabbitMQ indisponivel, tentativa %d/10...", attempt + 1)
+            await asyncio.sleep(3)
+
+    if not connection:
+        logger.error("Nao conseguiu conectar no RabbitMQ apos 10 tentativas")
+        return
+
     channel = await get_rabbit_channel(connection)
 
-    queue = await channel.get_queue(QUEUE_NAME)
+    queue = await channel.declare_queue(QUEUE_NAME, durable=True)
 
     # prefetch=1: worker pega 1 msg por vez, so pega a proxima apos terminar
     await channel.set_qos(prefetch_count=1)

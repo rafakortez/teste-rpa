@@ -27,9 +27,9 @@ class CrawlJob(BaseEntity):
     id: Mapped[str] = mapped_column(
         String(36), primary_key=True, default=lambda: str(uuid.uuid4())
     )
-    job_type: Mapped[str] = mapped_column(Enum(JobType), nullable=False)
-    status: Mapped[str] = mapped_column(
-        Enum(JobStatus), nullable=False, default=JobStatus.PENDING
+    job_type: Mapped[JobType] = mapped_column(Enum(JobType, native_enum=False), nullable=False)
+    status: Mapped[JobStatus] = mapped_column(
+        Enum(JobStatus, native_enum=False), nullable=False, default=JobStatus.PENDING
     )
     error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(

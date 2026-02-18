@@ -1,3 +1,4 @@
+from datetime import datetime
 from pydantic import BaseModel
 
 
@@ -9,5 +10,5 @@ class CrawlJobResponse(BaseModel):
     job_type: str
     status: str
     error_message: str | None = None
-    created_at: str
-    updated_at: str
+    created_at: datetime
+    updated_at: datetime | None = None
