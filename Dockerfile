@@ -21,6 +21,7 @@ COPY . .
 # variaveis de ambiente p/ Chrome dentro do container
 ENV APP_CHROME_BINARY_PATH=/usr/bin/chromium
 ENV APP_CHROMEDRIVER_PATH=/usr/bin/chromedriver
+ENV PYTHONPATH=/app
 
 # porta padrao da API
 EXPOSE 8000
