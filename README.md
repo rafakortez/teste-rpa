@@ -1,200 +1,54 @@
-# Teste Técnico - Desenvolvedor Senior RPA
+# Guia de Execução (Windows/Linux)
 
-## Contexto
+Este projeto foi desenvolvido e testado em ambiente Windows com Docker Desktop (WSL2 configurado).
 
-Você foi contratado para desenvolver um sistema de coleta de dados que extrai informações de múltiplas fontes web, gerencia jobs através de filas de mensagens, e disponibiliza os dados via API REST.
+## Pré-requisitos
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) instalado e rodando.
+- Git.
 
-## Objetivo
+## Como Executar
 
-Construir uma aplicação que:
+1. **Clone o repositório:**
+   ```powershell
+   git clone <URL_DO_REPO>
+   cd teste-tecnico-senior-rpa
+   ```
 
-1. Colete dados de **duas fontes distintas** com diferentes estratégias de scraping
-2. Implemente um **sistema de filas com RabbitMQ** para gerenciamento de jobs
-3. Persista dados em **PostgreSQL**
-4. Exponha uma **API REST**
-5. Tenha **testes automatizados** (unitários e integração)
-6. Seja **containerizada** e executável via `docker-compose up`
-7. Tenha **CI/CD** com GitHub Actions
+2. **Suba os containers (Build + Run):**
+   ```powershell
+   docker-compose up -d --build
+   ```
+   *Isso iniciará a API (porta 8000), Worker, RabbitMQ e PostgreSQL. As migrações do banco rodam automaticamente.*
 
----
+3. **Verifique o Status:**
+   Acesse a documentação interativa da API:
+   👉 [http://localhost:8000/docs](http://localhost:8000/docs)
 
-## Arquitetura Esperada
+4. **Dispare a Coleta (Crawling):**
+   Execute uma requisição POST para iniciar os jobs:
+   ```powershell
+   curl -X POST http://localhost:8000/crawl/all
+   ```
+   Ou via Swagger UI em `/crawl/all`.
 
-```
-┌─────────────┐     ┌─────────────┐     ┌─────────────┐
-│   FastAPI   │────▶│  RabbitMQ   │────▶│   Workers   │
-│    (API)    │     │   (Queue)   │     │  (Crawlers) │
-└─────────────┘     └─────────────┘     └─────────────┘
-       │                                       │
-       │            ┌─────────────┐            │
-       └───────────▶│  PostgreSQL │◀───────────┘
-                    │    (Data)   │
-                    └─────────────┘
-```
+5. **Acompanhe os Jobs:**
+   Veja o status em tempo real:
+   - **Jobs:** [http://localhost:8000/jobs](http://localhost:8000/jobs)
+   - **Logs do Worker:** `docker-compose logs -f worker`
 
----
+6. **Veja os Resultados:**
+   Os dados coletados estarão disponíveis em JSON:
+   - **Hockey:** [http://localhost:8000/results/hockey](http://localhost:8000/results/hockey)
+   - **Oscar:** [http://localhost:8000/results/oscar](http://localhost:8000/results/oscar)
 
-## Sites Alvo
+## Observações Técnicas
 
-### 1. Hockey Teams
+- **Persistência:** Os dados são salvos no PostgreSQL (volume docker).
+- **Filas:** RabbitMQ gerencia a distribuição de jobs.
+- **Resiliência:** Implementamos Logica de Retry na conexão com RabbitMQ e espera dinâmica (WebDriverWait + Sleep) no Selenium para evitar erros de renderização.
 
-**URL:** https://www.scrapethissite.com/pages/forms/
-
-**Características:** Página HTML com paginação tradicional
-
-**Dados a coletar:**
-- Team Name
-- Year
-- Wins, Losses, OT Losses
-- Win %, Goals For (GF), Goals Against (GA), Goal Difference
-
----
-
-### 2. Oscar Winning Films
-
-**URL:** https://www.scrapethissite.com/pages/ajax-javascript/
-
-**Características:** Dados carregados via JavaScript/AJAX
-
-**Dados a coletar:**
-- Year, Title, Nominations, Awards, Best Picture
-
----
-
-## Requisitos Técnicos
-
-### Stack Obrigatória
-
-| Tecnologia | Uso |
-|------------|-----|
-| **FastAPI** | Framework web |
-| **Pydantic** | Validação e serialização |
-| **SQLAlchemy** | ORM para persistência |
-| **PostgreSQL** | Banco de dados |
-| **RabbitMQ** | Sistema de filas |
-| **Selenium** | Disponível para páginas dinâmicas |
-| **Docker + Docker Compose** | Containerização |
-| **GitHub Actions** | CI/CD |
-
----
-
-## Endpoints da API (Assíncronos)
-
-```
-# Agendar coletas
-POST /crawl/hockey         → Agenda coleta do Hockey (retorna job_id)
-POST /crawl/oscar          → Agenda coleta do Oscar (retorna job_id)
-POST /crawl/all            → Agenda ambas as coletas (retorna job_id)
-
-# Gerenciar jobs
-GET  /jobs                 → Lista todos os jobs
-GET  /jobs/{job_id}        → Status e detalhes de um job
-
-# Consultar resultados
-GET  /jobs/{job_id}/results → Resultados de um job específico
-GET  /results/hockey        → Todos os dados coletados de Hockey
-GET  /results/oscar         → Todos os dados coletados de Oscar
-```
-
-**Fluxo assíncrono:**
-1. `POST /crawl/*` publica mensagem no RabbitMQ e retorna `job_id` imediatamente
-2. Worker consome a mensagem e executa o crawling
-3. `GET /jobs/{job_id}` para verificar status (pending, running, completed, failed)
-4. `GET /jobs/{job_id}/results` para obter os dados coletados por aquele job
-
----
-
-## Testes
-
-| Tipo | Descrição |
-|------|-----------|
-| **Unitários** | Testar lógica de negócio, parsers, validações |
-| **Integração** | Testar API, filas e banco usando Testcontainers |
-
-**Não é necessário** testar crawling real contra os sites.
-
----
-
-## CI/CD com GitHub Actions
-
-O pipeline deve executar:
-
-1. **Lint** - Verificar código (ruff, black, etc.)
-2. **Testes unitários** - pytest
-3. **Testes de integração** - pytest com Testcontainers
-4. **Build** - Construir imagem Docker
-5. **Push** - Enviar imagem para Google Container Registry (GCR)
-
----
-
-## Critérios de Avaliação
-
-| Critério | Peso |
-|----------|------|
-| **Arquitetura** | Alto - Design, separação de responsabilidades, uso do RabbitMQ |
-| **Qualidade de código** | Alto - SOLID, tipagem, boas práticas |
-| **Funcionamento** | Alto - A solução deve funcionar corretamente |
-| **Testes** | Alto - Unitários e integração com Testcontainers |
-| **CI/CD** | Alto - Pipeline funcional com push para GCR |
-| **Tratamento de erros** | Médio - Robustez e resiliência |
-| **Documentação** | Baixo |
-
----
-
-## Ambiente de Desenvolvimento
-
-### Nix + direnv (Recomendado - Linux)
-
-#### 1. Instalar Nix
-
-```bash
-sh <(curl --proto '=https' --tlsv1.2 -L https://nixos.org/nix/install) --daemon
-```
-
-#### 2. Habilitar Flakes
-
-Adicione ao `~/.config/nix/nix.conf`:
-
-```
-experimental-features = nix-command flakes
-```
-
-#### 3. Instalar direnv
-
-```bash
-# Debian/Ubuntu
-sudo apt install direnv
-
-# Fedora
-sudo dnf install direnv
-
-# Arch
-sudo pacman -S direnv
-```
-
-Adicione ao seu shell (`~/.bashrc` ou `~/.zshrc`):
-
-```bash
-eval "$(direnv hook bash)"  # ou zsh
-```
-
-#### 4. Rodar
-
-O `.envrc` e `flake.nix` já vêm prontos no repositório. Basta permitir o direnv e o ambiente será carregado automaticamente:
-
-```bash
-direnv allow
-```
-
-Commite o `flake.lock` no seu repositório.
-
----
-
-## Regras
-
-1. **Entrega:** Fork deste repositório
-2. **Dúvidas:** ti@bpcreditos.com.br | gabrielpelizzaro@gmail.com
-
----
-
-**Queremos ver como você arquiteta soluções, não apenas como escreve código.**
+## Estrutura do Projeto
+- `src/api`: Endpoints REST (FastAPI).
+- `src/scrapers`: Lógica de extração (Selenium/BS4).
+- `src/worker`: Consumidor de filas RabbitMQ.
+- `src/models` & `src/schemas`: Definições de dados (SQLAlchemy/Pydantic).
