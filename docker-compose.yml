@@ -1,0 +1,57 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: scraper
+      POSTGRES_PASSWORD: scraper
+      POSTGRES_DB: scraper_db
+    ports:
+      - "5432:5432"
+    # verifica se o banco ta pronto antes de liberar dependentes
+    healthcheck:
+      test: pg_isready -U scraper -d scraper_db
+      interval: 5s
+      retries: 5
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    ports:
+      - "5672:5672" # protocolo AMQP
+      - "15672:15672" # painel web (guest/guest)
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 5s
+      retries: 5
+
+  api:
+    build: .
+    # roda migracoes e depois inicia o servidor
+    command: >
+      sh -c "alembic upgrade head &&
+             uvicorn src.main:app --host 0.0.0.0 --port 8000"
+    ports:
+      - "8000:8000"
+    environment:
+      # hostnames > nomes dos servicos acima (rede interna do Docker)
+      APP_DATABASE_URL: postgresql+asyncpg://scraper:scraper@postgres:5432/scraper_db
+      APP_RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  worker:
+    build: .
+    command: python -m src.worker.consumer
+    environment:
+      APP_DATABASE_URL: postgresql+asyncpg://scraper:scraper@postgres:5432/scraper_db
+      APP_RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      api:
+        # espera API rodar migracoes antes de iniciar
+        condition: service_started
