@@ -21,6 +21,13 @@ class OscarScraper(BaseScraper):
         try:
             # to_thread roda selenium em thread separada p nao travar o async
             return await asyncio.to_thread(self._scrape_all_years, driver)
+        except Exception as e:
+            # Tenta tirar screenshot antes de fechar o driver
+            try:
+                e.screenshot_bytes = driver.get_screenshot_as_png()
+            except Exception:
+                pass  # se falhar o print, paciencia
+            raise e
         finally:
             driver.quit()
 

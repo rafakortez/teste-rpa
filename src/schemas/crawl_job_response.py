@@ -12,3 +12,4 @@ class CrawlJobResponse(BaseModel):
     error_message: str | None = None
     created_at: datetime
     updated_at: datetime | None = None
+    has_screenshot: bool = False

@@ -2,7 +2,7 @@ import enum
 import uuid
 from datetime import datetime
 
-from sqlalchemy import DateTime, Enum, String, Text, func
+from sqlalchemy import DateTime, Enum, String, Text, func, LargeBinary
 from sqlalchemy.orm import Mapped, mapped_column
 
 from src.models.base_entity import BaseEntity
@@ -18,6 +18,7 @@ class JobStatus(enum.StrEnum):
 class JobType(enum.StrEnum):
     HOCKEY = "hockey"
     OSCAR = "oscar"
+    OSCAR_FAIL = "oscar_fail"  # job de teste: simula falha de scraper em producao
 
 
 class CrawlJob(BaseEntity):
@@ -32,6 +33,7 @@ class CrawlJob(BaseEntity):
         Enum(JobStatus, native_enum=False), nullable=False, default=JobStatus.PENDING
     )
     error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
+    error_screenshot: Mapped[bytes | None] = mapped_column(LargeBinary, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         # server_default = quem gera o timestamp e o Postgres, nao o Python
         DateTime(timezone=True), server_default=func.now()
@@ -40,3 +42,7 @@ class CrawlJob(BaseEntity):
         # onupdate = Postgres atualiza sozinho quando o registro muda
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
+
+    @property
+    def has_screenshot(self) -> bool:
+        return self.error_screenshot is not None

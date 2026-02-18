@@ -1,54 +1,57 @@
-# Guia de Execução (Windows/Linux)
+# Crawler Distribuído — Teste Técnico Senior RPA
 
-Este projeto foi desenvolvido e testado em ambiente Windows com Docker Desktop (WSL2 configurado).
+FastAPI + RabbitMQ + PostgreSQL + Selenium, containerizado com Docker Compose.
 
-## Pré-requisitos
-- [Docker Desktop](https://www.docker.com/products/docker-desktop/) instalado e rodando.
-- Git.
+## Execução
 
-## Como Executar
+```bash
+git clone <URL_DO_REPO> && cd teste-tecnico-senior-rpa
+docker-compose up -d --build
+```
 
-1. **Clone o repositório:**
-   ```powershell
-   git clone <URL_DO_REPO>
-   cd teste-tecnico-senior-rpa
-   ```
+API em `http://localhost:8000/docs`.
 
-2. **Suba os containers (Build + Run):**
-   ```powershell
-   docker-compose up -d --build
-   ```
-   *Isso iniciará a API (porta 8000), Worker, RabbitMQ e PostgreSQL. As migrações do banco rodam automaticamente.*
+## Estrutura
 
-3. **Verifique o Status:**
-   Acesse a documentação interativa da API:
-   👉 [http://localhost:8000/docs](http://localhost:8000/docs)
+```
+src/
+├── api/          # FastAPI — rotas e dependências
+├── scrapers/     # Selenium + BS4 — um scraper por fonte
+├── worker/       # Consumidor RabbitMQ — processa jobs em background
+├── models/       # SQLAlchemy
+├── schemas/      # Pydantic
+└── repositories/ # Padrão Repository — isola acesso ao banco
+```
 
-4. **Dispare a Coleta (Crawling):**
-   Execute uma requisição POST para iniciar os jobs:
-   ```powershell
-   curl -X POST http://localhost:8000/crawl/all
-   ```
-   Ou via Swagger UI em `/crawl/all`.
+## Design
 
-5. **Acompanhe os Jobs:**
-   Veja o status em tempo real:
-   - **Jobs:** [http://localhost:8000/jobs](http://localhost:8000/jobs)
-   - **Logs do Worker:** `docker-compose logs -f worker`
+- **Single Responsibility** — cada scraper cuida de uma fonte (`HockeyScraper`, `OscarScraper`)
+- **Open/Closed** — novo scraper = nova entrada no `SCRAPER_MAP`, sem alterar o Worker
+- **Dependency Inversion** — API e Worker dependem de `CrawlJobRepo`, não do banco diretamente
 
-6. **Veja os Resultados:**
-   Os dados coletados estarão disponíveis em JSON:
-   - **Hockey:** [http://localhost:8000/results/hockey](http://localhost:8000/results/hockey)
-   - **Oscar:** [http://localhost:8000/results/oscar](http://localhost:8000/results/oscar)
+## Endpoints
 
-## Observações Técnicas
+```
+POST /crawl/all          inicia Hockey + Oscar
+POST /crawl/oscar_fail   simula falha de CSS (demo de observabilidade)
 
-- **Persistência:** Os dados são salvos no PostgreSQL (volume docker).
-- **Filas:** RabbitMQ gerencia a distribuição de jobs.
-- **Resiliência:** Implementamos Logica de Retry na conexão com RabbitMQ e espera dinâmica (WebDriverWait + Sleep) no Selenium para evitar erros de renderização.
+GET  /stats              contagem de jobs por status
+GET  /jobs               lista todos os jobs
+GET  /jobs/failed        últimos N falhos com job_id e timestamp
+GET  /jobs/{id}/screenshot  screenshot do browser no momento do erro (PNG)
 
-## Estrutura do Projeto
-- `src/api`: Endpoints REST (FastAPI).
-- `src/scrapers`: Lógica de extração (Selenium/BS4).
-- `src/worker`: Consumidor de filas RabbitMQ.
-- `src/models` & `src/schemas`: Definições de dados (SQLAlchemy/Pydantic).
+GET  /results/hockey
+GET  /results/oscar
+
+GET  /health
+```
+
+## Observabilidade
+
+Quando o Selenium falha, o Worker captura o screenshot do browser no momento exato do erro e salva no banco. Para testar:
+
+```bash
+curl -X POST http://localhost:8000/crawl/oscar_fail
+curl http://localhost:8000/jobs/failed
+curl http://localhost:8000/jobs/{id}/screenshot --output erro.png
+```

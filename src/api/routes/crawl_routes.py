@@ -58,3 +58,25 @@ async def crawl_all(
 
     await session.commit()
     return [CrawlJobResponse.model_validate(j) for j in jobs]
+
+
+@router.post(
+    "/oscar_fail",
+    response_model=CrawlJobResponse,
+    summary="Simula falha de scraper (demo de observabilidade)",
+    description=(
+        "Cria um job oscar que vai falhar intencionalmente, simulando uma mudança "
+        "de estrutura CSS no site alvo. Útil para demonstrar o endpoint de screenshot "
+        "de erro: GET /jobs/{id}/screenshot."
+    ),
+)
+async def crawl_oscar_fail(
+    session: AsyncSession = Depends(get_session),
+    channel: aio_pika.abc.AbstractChannel = Depends(get_channel),
+):
+    repo = CrawlJobRepo(session)
+    job = CrawlJob(job_type=JobType.OSCAR_FAIL)
+    await repo.create(job)
+    await publish_crawl_job(channel, job.id, job.job_type.value)
+    await session.commit()
+    return CrawlJobResponse.model_validate(job)

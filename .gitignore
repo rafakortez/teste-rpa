@@ -8,4 +8,7 @@ __pycache__/
 .pytest_cache/
 dist/
 build/
-INTERVIEW_PREP.md
+interview_prep.md
+logs/
+screenshots/
+*.png

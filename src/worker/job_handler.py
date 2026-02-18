@@ -10,6 +10,7 @@ from src.repositories.hockey_team_repo import HockeyTeamRepo
 from src.repositories.oscar_film_repo import OscarFilmRepo
 from src.scrapers.hockey_scraper import HockeyScraper
 from src.scrapers.oscar_scraper import OscarScraper
+from src.scrapers.oscar_fail_scraper import OscarFailScraper
 
 logger = logging.getLogger(__name__)
 
@@ -17,6 +18,7 @@ logger = logging.getLogger(__name__)
 SCRAPER_MAP = {
     JobType.HOCKEY: HockeyScraper,
     JobType.OSCAR: OscarScraper,
+    JobType.OSCAR_FAIL: OscarFailScraper,  # simula falha de CSS em producao
 }
 
 
@@ -53,6 +55,12 @@ async def handle_job(session: AsyncSession, job_id: str, job_type: str) -> None:
     except Exception as e:
         await session.rollback()
         # salva a mensagem de erro no job
-        await job_repo.update_status(job_id, JobStatus.FAILED, error_message=str(e))
+        screenshot = getattr(e, "screenshot_bytes", None)
+        await job_repo.update_status(
+            job_id, 
+            JobStatus.FAILED, 
+            error_message=str(e),
+            error_screenshot=screenshot
+        )
         await session.commit()
         logger.exception("Job %s falhou: %s", job_id, e)
