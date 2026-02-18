@@ -1,12 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException  # HTTPException p/ erros HTTP
-from sqlalchemy.ext.asyncio import AsyncSession         # tipo da sessao do banco
+from sqlalchemy.ext.asyncio import AsyncSession  # tipo da sessao do banco
 
-from src.api.dependencies import get_session                    # injecao da sessao
-from src.repositories.crawl_job_repo import CrawlJobRepo        # repo de jobs
-from src.repositories.hockey_team_repo import HockeyTeamRepo    # repo de hockey
-from src.repositories.oscar_film_repo import OscarFilmRepo      # repo de oscar
+from src.api.dependencies import get_session  # injecao da sessao
+from src.repositories.crawl_job_repo import CrawlJobRepo  # repo de jobs
+from src.repositories.hockey_team_repo import HockeyTeamRepo  # repo de hockey
+from src.repositories.oscar_film_repo import OscarFilmRepo  # repo de oscar
 from src.schemas.hockey_team_response import HockeyTeamResponse  # formato hockey
-from src.schemas.oscar_film_response import OscarFilmResponse    # formato oscar
+from src.schemas.oscar_film_response import OscarFilmResponse  # formato oscar
 
 router = APIRouter(prefix="/results", tags=["results"])
 

@@ -1,14 +1,12 @@
-import aio_pika    # cliente RabbitMQ
+import aio_pika  # cliente RabbitMQ
+from fastapi import APIRouter, Depends  # roteador + injecao de dependencias
+from sqlalchemy.ext.asyncio import AsyncSession  # tipo da sessao do banco
 
-from fastapi import APIRouter, Depends          # roteador + injecao de dependencias
-from sqlalchemy.ext.asyncio import AsyncSession # tipo da sessao do banco
-
-from src.api.dependencies import get_channel, get_session   # funcoes que criam sessao/canal
-from src.models.crawl_job import CrawlJob, JobType          # model + enum do banco
-from src.queue.rabbit_publisher import publish_crawl_job    # funcao que publica na fila
-from src.repositories.crawl_job_repo import CrawlJobRepo    # repo pra salvar job
-from src.schemas.crawl_job_response import CrawlJobResponse # formato da resposta JSON
-
+from src.api.dependencies import get_channel, get_session  # funcoes que criam sessao/canal
+from src.models.crawl_job import CrawlJob, JobType  # model + enum do banco
+from src.queue.rabbit_publisher import publish_crawl_job  # funcao que publica na fila
+from src.repositories.crawl_job_repo import CrawlJobRepo  # repo pra salvar job
+from src.schemas.crawl_job_response import CrawlJobResponse  # formato da resposta JSON
 
 router = APIRouter(prefix="/crawl", tags=["crawl"])
 

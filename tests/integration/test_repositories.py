@@ -1,4 +1,3 @@
-import pytest
 
 from src.models.crawl_job import CrawlJob, JobStatus, JobType
 from src.repositories.crawl_job_repo import CrawlJobRepo

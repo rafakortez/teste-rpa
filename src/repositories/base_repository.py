@@ -1,4 +1,5 @@
-from typing import Generic, Sequence, TypeVar
+from collections.abc import Sequence
+from typing import TypeVar
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -10,7 +11,7 @@ T = TypeVar("T", bound=BaseEntity)
 
 
 # repo generico: qualquer repo filho herda get, create, list sem reescrever
-class BaseRepository(Generic[T]):
+class BaseRepository[T: BaseEntity]:
     def __init__(self, session: AsyncSession, model_class: type[T]):
         self.session = session
         self.model_class = model_class

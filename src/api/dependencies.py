@@ -2,7 +2,7 @@ import aio_pika
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.database import async_session_factory
-from src.queue.rabbit_connection import get_rabbit_connection, get_rabbit_channel
+from src.queue.rabbit_connection import get_rabbit_channel, get_rabbit_connection
 
 
 async def get_session() -> AsyncSession:

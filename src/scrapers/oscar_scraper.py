@@ -4,7 +4,7 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.ui import WebDriverWait
 
 from src.config import settings
@@ -55,7 +55,7 @@ class OscarScraper(BaseScraper):
 
         # espera ate o AJAX carregar os filmes (max 10s)
         WebDriverWait(driver, LOAD_TIMEOUT).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR, ".film-title"))
+            ec.presence_of_element_located((By.CSS_SELECTOR, ".film-title"))
         )
 
         films = []

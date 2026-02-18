@@ -14,7 +14,7 @@ async def publish_crawl_job(
     message = aio_pika.Message(
         body=json.dumps(payload).encode(),
         # salva em disco p nao perder reiniciando
-        delivery_mode=aio_pika.DeliveryMode.PERSISTENT, 
+        delivery_mode=aio_pika.DeliveryMode.PERSISTENT,
     )
     await channel.default_exchange.publish(
         message,

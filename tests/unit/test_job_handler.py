@@ -26,10 +26,10 @@ def fake_job():
 @patch("src.worker.job_handler.CrawlJobRepo")
 @patch("src.worker.job_handler.SCRAPER_MAP")
 async def test_handle_job_hockey_completa_com_sucesso(
-    mock_map, MockJobRepo, MockHockeyRepo, fake_session, fake_job
+    mock_map, mock_job_repo_cls, mock_hockey_repo_cls, fake_session, fake_job
 ):
     # configura mock do repo de jobs
-    mock_job_repo = MockJobRepo.return_value
+    mock_job_repo = mock_job_repo_cls.return_value
     mock_job_repo.get_by_id = AsyncMock(return_value=fake_job)
     mock_job_repo.update_status = AsyncMock()
 
@@ -41,7 +41,7 @@ async def test_handle_job_hockey_completa_com_sucesso(
     ])
     mock_map.__getitem__ = MagicMock(return_value=lambda: mock_scraper)
 
-    mock_hockey_repo = MockHockeyRepo.return_value
+    mock_hockey_repo = mock_hockey_repo_cls.return_value
     mock_hockey_repo.create_many = AsyncMock()
 
     # executa
@@ -59,9 +59,9 @@ async def test_handle_job_hockey_completa_com_sucesso(
 @patch("src.worker.job_handler.CrawlJobRepo")
 @patch("src.worker.job_handler.SCRAPER_MAP")
 async def test_handle_job_marca_failed_quando_scraper_falha(
-    mock_map, MockJobRepo, fake_session, fake_job
+    mock_map, mock_job_repo_cls, fake_session, fake_job
 ):
-    mock_job_repo = MockJobRepo.return_value
+    mock_job_repo = mock_job_repo_cls.return_value
     mock_job_repo.get_by_id = AsyncMock(return_value=fake_job)
     mock_job_repo.update_status = AsyncMock()
 

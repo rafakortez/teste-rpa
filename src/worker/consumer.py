@@ -5,7 +5,7 @@ import logging
 import aio_pika
 
 from src.database import async_session_factory
-from src.queue.rabbit_connection import QUEUE_NAME, get_rabbit_connection, get_rabbit_channel
+from src.queue.rabbit_connection import QUEUE_NAME, get_rabbit_channel, get_rabbit_connection
 from src.worker.job_handler import handle_job
 
 logging.basicConfig(level=logging.INFO)

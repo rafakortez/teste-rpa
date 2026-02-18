@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException  # HTTPException p/ erros HTTP
-from sqlalchemy.ext.asyncio import AsyncSession         # tipo da sessao do banco
+from sqlalchemy.ext.asyncio import AsyncSession  # tipo da sessao do banco
 
-from src.api.dependencies import get_session             # injecao da sessao
-from src.repositories.crawl_job_repo import CrawlJobRepo # repo de jobs
+from src.api.dependencies import get_session  # injecao da sessao
+from src.repositories.crawl_job_repo import CrawlJobRepo  # repo de jobs
 from src.schemas.crawl_job_response import CrawlJobResponse  # formato da resposta
 
 router = APIRouter(prefix="/jobs", tags=["jobs"])

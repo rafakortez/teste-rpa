@@ -8,14 +8,14 @@ from sqlalchemy.orm import Mapped, mapped_column
 from src.models.base_entity import BaseEntity
 
 
-class JobStatus(str, enum.Enum):
+class JobStatus(enum.StrEnum):
     PENDING = "pending"
     RUNNING = "running"
     COMPLETED = "completed"
     FAILED = "failed"
 
 
-class JobType(str, enum.Enum):
+class JobType(enum.StrEnum):
     HOCKEY = "hockey"
     OSCAR = "oscar"
 
