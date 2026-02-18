@@ -2,7 +2,7 @@ import enum
 import uuid
 from datetime import datetime
 
-from sqlalchemy import DateTime, Enum, String, Text, func, LargeBinary
+from sqlalchemy import DateTime, Enum, LargeBinary, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from src.models.base_entity import BaseEntity

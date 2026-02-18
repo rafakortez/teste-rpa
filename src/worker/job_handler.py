@@ -9,8 +9,8 @@ from src.repositories.crawl_job_repo import CrawlJobRepo
 from src.repositories.hockey_team_repo import HockeyTeamRepo
 from src.repositories.oscar_film_repo import OscarFilmRepo
 from src.scrapers.hockey_scraper import HockeyScraper
-from src.scrapers.oscar_scraper import OscarScraper
 from src.scrapers.oscar_fail_scraper import OscarFailScraper
+from src.scrapers.oscar_scraper import OscarScraper
 
 logger = logging.getLogger(__name__)
 
@@ -57,8 +57,8 @@ async def handle_job(session: AsyncSession, job_id: str, job_type: str) -> None:
         # salva a mensagem de erro no job
         screenshot = getattr(e, "screenshot_bytes", None)
         await job_repo.update_status(
-            job_id, 
-            JobStatus.FAILED, 
+            job_id,
+            JobStatus.FAILED,
             error_message=str(e),
             error_screenshot=screenshot
         )

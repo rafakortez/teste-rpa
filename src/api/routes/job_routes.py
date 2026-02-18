@@ -33,7 +33,10 @@ class FailedJobSummary(BaseModel):
     "/failed",
     response_model=list[FailedJobSummary],
     summary="Ultimos jobs com falha",
-    description="Retorna os ultimos N jobs com status failed. Use o job_id para buscar o screenshot via GET /jobs/{id}/screenshot.",
+    description=(
+        "Retorna os ultimos N jobs com status failed. "
+        "Use o job_id para buscar o screenshot via GET /jobs/{id}/screenshot."
+    ),
 )
 async def get_failed_jobs(
     limit: int = 5,

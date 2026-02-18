@@ -12,10 +12,10 @@ import asyncio
 import time
 
 from selenium import webdriver
+from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.ui import WebDriverWait
-from selenium.common.exceptions import TimeoutException
 
 from src.config import settings
 from src.scrapers.oscar_scraper import OscarScraper
@@ -73,7 +73,10 @@ class OscarFailScraper(OscarScraper):
 
             banner.innerHTML = [
                 '<strong>⚠️ SCRAPER ERROR — CSS structure changed</strong><br>',
-                '<span style="opacity:0.9">Expected selector: <code style="background:#922b21;padding:2px 6px;border-radius:3px">{BROKEN_SELECTOR}</code> — not found after {LOAD_TIMEOUT}s</span><br>',
+                '<span style="opacity:0.9">Expected selector:',
+                ' <code style="background:#922b21;padding:2px 6px;border-radius:3px">',
+                '{BROKEN_SELECTOR}</code>',
+                ' — not found after {LOAD_TIMEOUT}s</span><br>',
                 '<span style="opacity:0.75;font-size:12px">{safe_msg}</span>'
             ].join('');
 
