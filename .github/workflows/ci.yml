@@ -1,0 +1,70 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Instalar dependencias
+        run: pip install ruff
+
+      - name: Rodar linter
+        run: ruff check src/ tests/
+
+  unit-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Instalar dependencias
+        run: |
+          pip install uv
+          uv pip install --system -e ".[dev]"
+
+      - name: Rodar unit tests
+        run: pytest tests/unit/ -v
+
+  integration-tests:
+    runs-on: ubuntu-latest
+    # precisa Docker p/ Testcontainers (ubuntu-latest ja inclui)
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Instalar dependencias
+        run: |
+          pip install uv
+          uv pip install --system -e ".[dev]"
+
+      - name: Rodar integration tests
+        run: pytest tests/integration/ -v
+
+  docker-build:
+    runs-on: ubuntu-latest
+    needs: [lint, unit-tests, integration-tests]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build -t scraper-api .
+
+      - name: Verificar que imagem subiu
+        run: docker images scraper-api
